@@ -31,15 +31,15 @@ import pandas as pd
 import easyplotly as ep
 ```
 
-Plot links from a DataFrame (sources as the index, targets as the columns):
+Plot links from a dict, or a series with a source/target multiindex:
 ```python
-links = pd.DataFrame(1, index=['Source A', 'Source B'], columns=['Target'])
+links={('A', 'B'): 3, ('B', 'C'): 1, ('B', 'D'): 2, ('C', 'A'): 1, ('D', 'A'): 1, ('A', 'D'):1}
 go.Figure(ep.Sankey(links))
 ```
 
-Plot links from a dict, or a series with a source/target multiindex:
+Plot links from a DataFrame (sources as the index, targets as the columns):
 ```python
-links={('Source A', 'Target'): 1, ('Source B', 'Target'): 1}
+links = pd.DataFrame(1, index=['Source A', 'Source B'], columns=['Target'])
 go.Figure(ep.Sankey(links))
 ```
 
