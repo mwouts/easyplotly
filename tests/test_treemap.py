@@ -1,7 +1,11 @@
+import sys
 import pytest
 import pandas as pd
 import plotly.graph_objects as go
 from easyplotly import Treemap
+
+if sys.version_info < (3, 6):
+    pytest.skip(msg="dict is not ordered", allow_module_level=True)
 
 
 @pytest.fixture()

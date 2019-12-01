@@ -1,6 +1,10 @@
+import sys
 import pytest
 import plotly.graph_objects as go
 from easyplotly import Sunburst
+
+if sys.version_info < (3, 6):
+    pytest.skip(msg="dict is not ordered", allow_module_level=True)
 
 
 @pytest.fixture()
