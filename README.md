@@ -55,24 +55,32 @@ import plotly.io as pio
 import easyplotly as ep
 
 pio.renderers.default = 'notebook_connected'
+layout = go.Layout(title='World Population and Life Expectancy<br>Data from the World Bank', height=800)
 ```
 
 Our `Sunburst` function accepts inputs of many types: pandas Series, dictionaries, and list of such objects.
-If wanted, you can redefine `labels`, or add other arguments like `text` - use either a Series with an index
+If you want, you can redefine `labels`, or add other arguments like `text` - use either a Series with an index
 identical to that of `values`, or a function that to any tuple `(level0, level1, ... leveln)`
 associates the corresponding label or value.
 
 ```python
-sunburst = ep.Sunburst(pop_and_exp.population, text=pop_and_exp.life_expectancy, root_label='World')
-layout = go.Layout(title='World Population and Life Expectancy<br>Data from the World Bank', height=800)
+sunburst = ep.Sunburst(pop_and_exp.population, text=pop_and_exp.life_expectancy)
 go.Figure(sunburst, layout)
 ```
 
 ## Treemaps
 
-The `Treemap` function works like the `Sunburst` one.
+The `Treemap` function works like the `Sunburst` one:
 
-In this example we use a function to define the text associated to an entry in the map.  
+```python
+treemap = ep.Treemap(pop_and_exp.population, text=pop_and_exp.life_expectancy)
+go.Figure(treemap, layout)
+```
+
+Just like the `Sunburst` function, it also accepts all the arguments supported by the original
+`go.Sunburst` object. You're even welcome to use the
+[magic underscore notation](https://plot.ly/python/creating-and-updating-figures/#magic-underscore-notation),
+as we do below when we set `marker.colors` with `marker_colors`:
 
 ```python
 import numpy as np
@@ -94,17 +102,30 @@ def average(values, weights):
     return total_obs / total_weight if total_weight != 0 else np.NaN
 
 
+def life_expectancy(item):
+    """Life expectancy associated to a tuple like (), ('Europe & Central Asia') or ('East Asia & Pacific', 'China')"""
+    sub = pop_and_exp.loc[item] if item else pop_and_exp
+    return average(sub.life_expectancy, weights=sub.population)
+
+
 def text(item):
     """Return the text associated to a tuple like (), ('Europe & Central Asia') or ('East Asia & Pacific', 'China')"""
     sub = pop_and_exp.loc[item] if item else pop_and_exp
     pop = sub.population.sum()
+    le = life_expectancy(item)
     if pop > 0:
         life_exp = average(sub.life_expectancy, weights=sub.population)
         return 'Population: {:,}<br>Life expectancy: {:.2f}'.format(int(pop) if pop > 0 else 0, life_exp)
 
 
-treemap = ep.Treemap(pop_and_exp.population, text=text, root_label='World')
-treemap.hoverinfo = 'label+text'  # Remove value since it is already in the text
+treemap = ep.Treemap(pop_and_exp.population,
+                     hoverinfo='label+text',
+                     text=text,
+                     root_label='World',
+                     # magic underscore notation
+                     marker_colors=life_expectancy,
+                     marker_colorscale='RdBu')
+
 go.Figure(treemap, layout)
 ```
 
@@ -121,6 +142,9 @@ Plot links from a DataFrame (sources as the index, targets as the columns):
 
 ```python
 import pandas as pd
+```
+
+```python
 links = pd.DataFrame(1, index=['Source A', 'Source B'], columns=['Target'])
 go.Figure(ep.Sankey(links))
 ```
@@ -132,13 +156,13 @@ region_income = wb.get_countries().query("region != 'Aggregates'").copy()
 region_income['population'] = wb.get_series('SP.POP.TOTL', mrv=1, id_or_value='id', simplify_index=True)
 income_lending = region_income.copy()
 region_income.set_index(['region', 'incomeLevel'], inplace=True)
-
 income_lending.set_index(['incomeLevel', 'lendingType'], inplace=True)
 
-sankey = ep.Sankey(
-    links=[region_income['population'], income_lending['population']],
-    link_labels=[region_income['name'], income_lending['name']]
-)
 layout = go.Layout(title='Regions income and lending type<br>Data from the World Bank')
+
+sankey = ep.Sankey(
+    link_value=[region_income['population'], income_lending['population']],
+    link_label=[region_income['name'], income_lending['name']])
+
 go.Figure(sankey, layout)
 ```

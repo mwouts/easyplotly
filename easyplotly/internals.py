@@ -53,12 +53,22 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
                     # Sum the descendent weights onto the parents (skip nans)
                     tree[parent] += value
 
-    all_nodes = list(tree.keys())
+    def ends_with_none_or_nan(key):
+        if not key:
+            return False
+        last = key[-1]
+        if last is None:
+            return True
+        if isinstance(last, float) and np.isnan(last):
+            return True
+        return False
+
+    all_nodes = [key for key in tree.keys() if not ends_with_none_or_nan(key)]
 
     def node_id(item):
         if root_label is None and not item:
             return None
-        return '/' + '/'.join(item)
+        return '/' + '/'.join(u'{}'.format(i) for i in item)
 
     if 'labels' in kwargs:
         label_function = dict_to_function(kwargs.pop('labels'))
@@ -75,7 +85,11 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
     )
 
     for arg in kwargs:
-        text_function = dict_to_function(kwargs[arg])
-        trace[arg] = [text_function(i) for i in all_nodes]
+        value = kwargs[arg]
+        if isinstance(value, (str, int, float, list)):
+            trace[arg] = value
+        else:
+            fun = dict_to_function(value)
+            trace[arg] = [fun(i) for i in all_nodes]
 
     return trace
