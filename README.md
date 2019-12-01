@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/mwouts/easyplotly.svg?branch=master)](https://travis-ci.com/mwouts/easyplotly)
 [![codecov.io](https://codecov.io/github/mwouts/easyplotly/coverage.svg?branch=master)](https://codecov.io/github/mwouts/easyplotly?branch=master)
-[![Language grade: Python](https://img.shields.io/badge/lgtm-A+-brightgreen.svg)](https://lgtm.com/projects/g/mwouts/easyplotly/context:python)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/mwouts/easyplotly.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/mwouts/easyplotly/context:python)
 [![Pypi](https://img.shields.io/pypi/v/easyplotly.svg)](https://pypi.python.org/pypi/easyplotly)
 [![pyversions](https://img.shields.io/pypi/pyversions/easyplotly.svg)](https://pypi.python.org/pypi/easyplotly)
 [![Jupyter Notebook](https://img.shields.io/badge/Binder-Notebook-blue.svg)](
@@ -10,39 +10,135 @@
 [![GitHub.io](https://img.shields.io/badge/GitHub-HTML-blue.svg)](https://mwouts.github.io/easyplotly)
 <a class="github-button" href="https://github.com/mwouts/easyplotly" data-icon="octicon-star" data-show-count="true" aria-label="Star mwouts/easyplotly on GitHub">Star</a>
 
-This package collects a few functions that hopefully make Plotly plotting easier
+This is on-going research on how ploting with [Plotly.py](https://github.com/plotly/plotly.py), 
+especially ploting of hierarchical data, could be made easier.
+
+See the outputs of the commands below - tables and plots - 
+in the [HTML export](https://mwouts.github.io/easyplotly/) of this notebook.
+Or even, open this `README.md` as a notebook and run it interactively on 
+[Binder](https://mybinder.org/v2/gh/mwouts/easyplotly/master?filepath=README.md)!
 
 ## Installation
 
-Install or update the `easyplotly` python package with
+Install the `easyplotly` python package with
 
 ```
-git clone https://github.com/mwouts/easyplotly.git
-pip install -e easyplotly
+pip install easyplotly
+```
+
+## Sample data
+
+Our sample data is the population and life expectancy, per country and region:
+
+```python
+import world_bank_data as wb
+import itables.interactive
+
+# Collect countries
+countries = wb.get_countries()
+region_country = countries[['region', 'name']].rename(columns={'name': 'country'})
+
+# Population & life expectancy
+region_country['population'] = wb.get_series('SP.POP.TOTL', mrv=1, id_or_value='id', simplify_index=True)
+region_country['life_expectancy'] = wb.get_series('SP.DYN.LE00.IN', mrv=1, id_or_value='id', simplify_index=True)
+
+# Observations restricted to the countries
+pop_and_exp = region_country.loc[countries.region != 'Aggregates'].set_index(['region', 'country']).sort_index()
+pop_and_exp
+```
+
+## Sunburst Charts
+
+```python
+import plotly.graph_objects as go
+import plotly.io as pio
+import easyplotly as ep
+
+pio.renderers.default = 'notebook_connected'
+```
+
+Our `Sunburst` function accepts inputs of many types: pandas Series, dictionaries, and list of such objects.
+If wanted, you can redefine `labels`, or add other arguments like `text` - use either a Series with an index
+identical to that of `values`, or a function that to any tuple `(level0, level1, ... leveln)`
+associates the corresponding label or value.
+
+```python
+sunburst = ep.Sunburst(pop_and_exp.population, text=pop_and_exp.life_expectancy, root_label='World')
+layout = go.Layout(title='World Population and Life Expectancy<br>Data from the World Bank', height=800)
+go.Figure(sunburst, layout)
+```
+
+## Treemaps
+
+The `Treemap` function works like the `Sunburst` one.
+
+In this example we use a function to define the text associated to an entry in the map.  
+
+```python
+import numpy as np
+
+
+def average(values, weights):
+    """Same as np.average, but remove nans"""
+    total_obs = 0.
+    total_weight = 0.
+    if isinstance(values, np.float):
+        values = [values]
+        weights = [weights]
+    for x, w in zip(values, weights):
+        xw = x * w
+        if np.isnan(xw):
+            continue
+        total_obs += xw
+        total_weight += w
+    return total_obs / total_weight if total_weight != 0 else np.NaN
+
+
+def text(item):
+    """Return the text associated to a tuple like (), ('Europe & Central Asia') or ('East Asia & Pacific', 'China')"""
+    sub = pop_and_exp.loc[item] if item else pop_and_exp
+    pop = sub.population.sum()
+    if pop > 0:
+        life_exp = average(sub.life_expectancy, weights=sub.population)
+        return 'Population: {:,}<br>Life expectancy: {:.2f}'.format(int(pop) if pop > 0 else 0, life_exp)
+
+
+treemap = ep.Treemap(pop_and_exp.population, text=text, root_label='World')
+treemap.hoverinfo = 'label+text'  # Remove value since it is already in the text
+go.Figure(treemap, layout)
 ```
 
 ## Sankey Plot
 
-See the outputs of the commands below on [GitHub](https://mwouts.github.io/easyplotly/). Or even, open this `README.md` as a notebook and run it interactively on [Binder](https://mybinder.org/v2/gh/mwouts/easyplotly/master?filepath=README.md)!
-
-```python
-import plotly.graph_objects as go
-import pandas as pd
-import easyplotly as ep
-```
-
 Plot links from a dict, or a series with a source/target multiindex:
+
 ```python
-links={('A', 'B'): 3, ('B', 'C'): 1, ('B', 'D'): 2, ('C', 'A'): 1, ('D', 'A'): 1, ('A', 'D'):1}
+links = {('A', 'B'): 3, ('B', 'C'): 1, ('B', 'D'): 2, ('C', 'A'): 1, ('D', 'A'): 1, ('A', 'D'): 1}
 go.Figure(ep.Sankey(links))
 ```
 
 Plot links from a DataFrame (sources as the index, targets as the columns):
+
 ```python
+import pandas as pd
 links = pd.DataFrame(1, index=['Source A', 'Source B'], columns=['Target'])
 go.Figure(ep.Sankey(links))
 ```
 
-```python
+We conclude the examples with a plot in which the links are a list of pandas Series:
 
+```python
+region_income = wb.get_countries().query("region != 'Aggregates'").copy()
+region_income['population'] = wb.get_series('SP.POP.TOTL', mrv=1, id_or_value='id', simplify_index=True)
+income_lending = region_income.copy()
+region_income.set_index(['region', 'incomeLevel'], inplace=True)
+
+income_lending.set_index(['incomeLevel', 'lendingType'], inplace=True)
+
+sankey = ep.Sankey(
+    links=[region_income['population'], income_lending['population']],
+    link_labels=[region_income['name'], income_lending['name']]
+)
+layout = go.Layout(title='Regions income and lending type<br>Data from the World Bank')
+go.Figure(sankey, layout)
 ```

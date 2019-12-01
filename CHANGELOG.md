@@ -1,5 +1,4 @@
-0.1.0 (Not released)
-====================
+0.1.0 (2019-01-12)
+==================
 
-Added
-- `Sankey` plot, taking a dataframe or series or dict or collection of those as input
+Initial release with `Sunburst`, `Treemap` and `Sankey` plots.
