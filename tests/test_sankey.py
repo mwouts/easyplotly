@@ -26,7 +26,7 @@ def test_sankey_dict(sankey_a_b_target, links={('Source A', 'Target'): 1, ('Sour
 def test_sankey_two_series():
     x = pd.Series({('A', 'B'): 1})
     y = pd.Series({('B', 'C'): 1})
-    node_labels = {'A': 'a', 'B': 'b', 'C': 'c'}
+    node_label = {'A': 'a', 'B': 'b', 'C': 'c'}
     sankey_expected = go.Sankey(
         node=dict(label=['a', 'b', 'c']),
         link=dict(
@@ -34,10 +34,10 @@ def test_sankey_two_series():
             target=[1, 2],
             value=[1, 1]
         ))
-    assert Sankey((x, y), node_labels=node_labels) == sankey_expected
+    assert Sankey((x, y), node_label=node_label) == sankey_expected
     sankey_expected.link.label = ['ab', 'bc']
 
-    def link_labels(source, target):
+    def link_label(source, target):
         return ''.join([source, target]).lower()
 
-    assert Sankey((x, y), node_labels=node_labels, link_labels=link_labels) == sankey_expected
+    assert Sankey((x, y), node_label=node_label, link_label=link_label) == sankey_expected

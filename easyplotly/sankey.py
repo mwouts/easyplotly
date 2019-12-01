@@ -5,13 +5,8 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
-def source_target_series(links):
-    """
-
-    :param links: a dataframe with the value of the links (rows=source, columns=target), a series with a
-        two-dimensional multiindex (source/target), or a list of such objects
-    :return:
-    """
+def _source_target_series(links):
+    """Transform the input, if possible, in a pandas Series with a multiindex of dimension two: source x target"""
     if isinstance(links, pd.DataFrame):
         links = links.copy().stack()
     elif isinstance(links, dict):
@@ -22,33 +17,23 @@ def source_target_series(links):
             _ = (i for i in links)
         except TypeError:
             raise TypeError("'links' should be (an interable) of Pandas Series, not {}".format(type(links)))
-        return pd.concat((source_target_series(i) for i in links))
+        return pd.concat((_source_target_series(i) for i in links))
     assert isinstance(links.index, pd.MultiIndex) and len(links.index.names) == 2, \
         "'links' should have source x target as its index"
     return links
 
 
-def Sankey(links, node_labels=None, link_labels=None):
-    """Sankey plots made easy
+def Sankey(link_value, **kwargs):
+    """Sankey diagrams
 
-    :param links: a dataframe with the value of the links (rows=source, columns=target), a series with a
+    :param link_value: a dataframe with the value of the links (rows=source, columns=target), a series with a
         two-dimensional multiindex (source/target), or a list of such objects
-    :param node_labels: (optional) the labels for the nodes: a dict, series or callable: node id => label
-    :param link_labels: (optional) the labels for the links: a series with an index similar to 'links',
-    or a function source, target => label
+    :param kwargs: additional arguments like 'node_label': a dict, series or callable: node id => label, or
+    'link_label': a series with an index similar to 'link_value', or a function source, target => label
     :return: a go.Sankey object
     """
-    links = source_target_series(links)
-    if node_labels is None:
-        def node_id_to_label(i):
-            return i
-    elif callable(node_labels):
-        node_id_to_label = node_labels
-    else:
-        def node_id_to_label(i):
-            return node_labels[i]
-
-    node_ids = list(set(links.index.get_level_values(0)).union(links.index.get_level_values(1)))
+    link_value = _source_target_series(link_value)
+    node_ids = list(set(link_value.index.get_level_values(0)).union(link_value.index.get_level_values(1)))
     node_ids.sort()
     node_nums = np.arange(len(node_ids))
 
@@ -57,17 +42,30 @@ def Sankey(links, node_labels=None, link_labels=None):
     def node_id_to_num(i):
         return node_id_to_num_dict[i]
 
-    sankey_node = dict(label=[node_id_to_label(i) for i in node_ids])
-    sankey_link = dict(
-        source=[node_id_to_num(i) for i in links.index.get_level_values(0)],
-        target=[node_id_to_num(i) for i in links.index.get_level_values(1)],
-        value=links.values
-    )
+    trace = dict(
+        node=dict(label=node_ids),
+        link=dict(
+            source=[node_id_to_num(i) for i in link_value.index.get_level_values(0)],
+            target=[node_id_to_num(i) for i in link_value.index.get_level_values(1)],
+            value=link_value.values
+        ))
 
-    if callable(link_labels):
-        sankey_link['label'] = [link_labels(source, target) for (source, target) in links.index]
-    elif link_labels is not None:
-        link_labels = source_target_series(link_labels)
-        sankey_link['label'] = link_labels.values
+    for arg in kwargs:
+        value = kwargs[arg]
+        if isinstance(value, (str, int, float, list)):
+            trace[arg] = value
+        elif arg.startswith('link_'):
+            if callable(value):
+                trace[arg] = [value(source, target) for (source, target) in link_value.index]
+            else:
+                value = _source_target_series(value)
+                trace[arg] = [value.loc[link] for link in link_value.index]
+        else:
+            if callable(value):
+                fun = value
+            else:
+                def fun(i):
+                    return value[i]
+            trace[arg] = [fun(i) for i in node_ids]
 
-    return go.Sankey(node=sankey_node, link=sankey_link)
+    return go.Sankey(**trace)
