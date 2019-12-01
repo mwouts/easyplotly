@@ -1,0 +1,7 @@
+jupytext
+world_bank_data
+world_trade_data
+plotly
+itables
+easyplotly
+jupyter_contrib_nbextensions
