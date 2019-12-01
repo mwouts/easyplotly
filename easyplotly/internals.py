@@ -1,6 +1,7 @@
 """Functions internal to the easyplotly package"""
 
 import pandas as pd
+import numpy as np
 
 
 def tree_like_structure_to_dict(values):
@@ -48,7 +49,7 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
 
                 tree.setdefault(parent, 0)
 
-                if branchvalues == 'total' and value >= 0:
+                if branchvalues == 'total' and not np.isnan(value):
                     # Sum the descendent weights onto the parents (skip nans)
                     tree[parent] += value
 
