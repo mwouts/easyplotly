@@ -110,12 +110,10 @@ def life_expectancy(item):
 
 def text(item):
     """Return the text associated to a tuple like (), ('Europe & Central Asia') or ('East Asia & Pacific', 'China')"""
-    sub = pop_and_exp.loc[item] if item else pop_and_exp
-    pop = sub.population.sum()
-    le = life_expectancy(item)
-    if pop > 0:
-        life_exp = average(sub.life_expectancy, weights=sub.population)
-        return 'Population: {:,}<br>Life expectancy: {:.2f}'.format(int(pop) if pop > 0 else 0, life_exp)
+    life_exp = life_expectancy(item)
+    if life_exp > 0:
+        pop = pop_and_exp.population.loc[item].sum() if item else pop_and_exp.population.sum()  
+        return 'Population: {:,}<br>Life expectancy: {:.2f}'.format(int(pop), life_exp)
 
 
 treemap = ep.Treemap(pop_and_exp.population,
