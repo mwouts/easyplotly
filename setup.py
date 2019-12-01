@@ -24,7 +24,7 @@ setup(
     url='https://github.com/mwouts/easyplotly',
     packages=find_packages(exclude=['tests']),
     tests_require=['pytest'],
-    install_requires=['pandas', 'plotly'],
+    install_requires=['pandas', 'numpy', 'plotly'],
     license='MIT',
     classifiers=['Development Status :: 3 - Alpha',
                  'License :: OSI Approved :: MIT License',
