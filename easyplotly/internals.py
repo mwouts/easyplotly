@@ -68,7 +68,7 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
     def node_id(item):
         if root_label is None and not item:
             return None
-        return '/' + '/'.join(str(i) for i in item)
+        return '/' + '/'.join(u'{}'.format(i) for i in item)
 
     if 'labels' in kwargs:
         label_function = dict_to_function(kwargs.pop('labels'))
