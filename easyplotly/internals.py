@@ -35,7 +35,7 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
 
     for item in org_tree:
         if isinstance(item, tuple):
-            value = values[item]
+            value = org_tree[item]
             if value < 0:
                 raise ValueError('Negative value {} for {}'.format(value, item))
 
