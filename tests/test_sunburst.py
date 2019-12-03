@@ -43,6 +43,18 @@ def test_sunburst_with_root(sunburst_with_root, sunburst_input):
     assert Sunburst(sunburst_input, root_label='') == sunburst_with_root
 
 
+def test_sunburst_simple_index():
+    sunburst_input = {'A': 2, 'B': 3}
+    sunburst_expected = go.Sunburst(
+        ids=['/A', '/B'],
+        labels=['A', 'B'],
+        parents=[None, None],
+        values=[2, 3],
+        branchvalues='total'
+    )
+    assert Sunburst(sunburst_input) == sunburst_expected
+
+
 def test_sunburst_remainder(sunburst_expected, sunburst_input):
     sunburst_expected.branchvalues = 'remainder'
     sunburst_expected.values = [1, 2, 1, 0, 0]
