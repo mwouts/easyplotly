@@ -3,6 +3,12 @@
 import pandas as pd
 import numpy as np
 
+"""When computing the sum of weights, we had an epsilon to make sure that the JS code
+will see a total larger than the sum. See #3. Note that the example reported at #3 is
+fixed already with EPS=1e-16. But, since (0.1+0.2-0.3)*10=5.5e-16, we prefer to take
+a larger value here."""
+EPS = 1e-15
+
 
 def tree_like_structure_to_dict(values):
     """Transform a series, a dict, or a collection of such objects, into a dictionary index by tuples"""
@@ -51,7 +57,12 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
 
                 if branchvalues == 'total' and not np.isnan(value):
                     # Sum the descendent weights onto the parents (skip nans)
-                    tree[parent] += value
+                    if isinstance(value, int):
+                        tree[parent] += value
+                    else:
+                        # Make sure that the parent is going to be bigger
+                        # than the sum of values, even if we change the summation order (#3)
+                        tree[parent] += value * (1 + depth * EPS)
 
     def ends_with_none_or_nan(key):
         if not key:
