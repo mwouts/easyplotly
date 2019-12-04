@@ -1,10 +1,10 @@
-0.1.2 (2019-12-??)
+0.1.2 (2019-12-04)
 ==================
 
 Fixed
 -----
 - Sunburst and Treemap charts also work with dictionaries and pandas Series with a one-dimensional index (#4)
-
+- Add epsilon when summing floats to fix the issue of Sunburst and Treemap not shown (#3)
 
 0.1.1 (2019-12-02)
 ==================

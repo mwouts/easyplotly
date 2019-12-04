@@ -6,6 +6,7 @@ jupytext
 nbconvert
 jupyter_client
 ipykernel
+mock
 
 # Examples
 world_bank_data

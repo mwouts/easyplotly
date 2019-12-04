@@ -164,3 +164,5 @@ sankey = ep.Sankey(
 
 go.Figure(sankey, layout)
 ```
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
