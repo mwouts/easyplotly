@@ -1,3 +1,11 @@
+0.1.3 (2019-12-04)
+==================
+
+Fixed
+-----
+- Fix the epsilons added to values of Sunburst and Treemap when the graph has a root (#3)
+
+
 0.1.2 (2019-12-04)
 ==================
 

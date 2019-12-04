@@ -111,3 +111,16 @@ def test_parent_value_strictly_larger():
             branchvalues='total'
         )
         assert Sunburst(sunburst_input) == sunburst_expected
+
+
+def test_parent_value_strictly_larger_with_root():
+    with mock.patch('easyplotly.internals.EPS', 0.01):
+        sunburst_input = {('A', 'a', '1', 'i'): 1.0}
+        sunburst_expected = go.Sunburst(
+            ids=['/A/a/1/i', '/', '/A/a/1', '/A/a', '/A'],
+            labels=['i', 'root', '1', 'a', 'A'],
+            parents=['/A/a/1', None, '/A/a', '/A', '/'],
+            values=[1., 1.04, 1.01, 1.02, 1.03],
+            branchvalues='total'
+        )
+        assert Sunburst(sunburst_input, root_label='root') == sunburst_expected

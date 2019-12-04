@@ -62,7 +62,7 @@ def sunburst_or_treemap(values, root_label=None, branchvalues='total', **kwargs)
                     else:
                         # Make sure that the parent is going to be bigger
                         # than the sum of values, even if we change the summation order (#3)
-                        tree[parent] += value * (1 + depth * EPS)
+                        tree[parent] += value * (1 + (len(item) - len(parent)) * EPS)
 
     def ends_with_none_or_nan(key):
         if not key:
