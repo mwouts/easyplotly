@@ -127,6 +127,36 @@ treemap = ep.Treemap(pop_and_exp.population,
 go.Figure(treemap, layout)
 ```
 
+Treemaps and Sunburst also accept trees with a non-constant depth - use a dictionary indexed with tuples of varying size. For instance, here is a tree that represents the files in this project:
+
+```python
+import os
+from plotly.colors import DEFAULT_PLOTLY_COLORS
+
+project_files = os.popen('git ls-tree --name-only -r master').read().split()
+
+size = {tuple(path.split('/')):os.stat(path).st_size for path in project_files}
+log_size = {i: np.log(size[i]) for i in size}
+extensions = set(os.path.splitext(path)[1] for path in project_files)
+color_map = dict(zip(extensions, DEFAULT_PLOTLY_COLORS))
+
+def node_color(node):
+    if not node:
+        return
+    node_extension = os.path.splitext(node[-1])[1]
+    return color_map[node_extension]
+```
+
+```python
+treemap = ep.Treemap(log_size,
+                     text=size,
+                     hoverinfo='label+text',
+                     marker_colors=node_color,
+                     root_label='https://github.com/mwouts/easyplotly')
+
+go.Figure(treemap)
+```
+
 ## Sankey Plot
 
 Plot links from a dict, or a series with a source/target multiindex:
