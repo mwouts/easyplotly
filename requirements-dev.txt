@@ -9,5 +9,6 @@ ipykernel
 mock
 
 # Examples
+jupyter-book
 world_bank_data
 itables
