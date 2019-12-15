@@ -1,8 +1,14 @@
-.*cache
+# Editors
 .idea
+.vscode
+
+# Notebooks
 *.ipynb
 .ipynb_checkpoints
+
+# Python
 *.egg-info
 *.pyc
+.*cache
 build/
 dist/
