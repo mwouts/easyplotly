@@ -1,0 +1,25 @@
+name: easyplotly
+channels:
+  - default
+  - conda-forge
+dependencies:
+  - python>=3.7
+  - jupyter
+  - jupytext
+  - autopep8
+  - flake8
+  - pylint
+  - pandas
+  - numpy
+  - plotly
+  - pytest
+  - pytest-xdist
+  - pip
+  - setuptools
+  - ruby>=2.6.5
+  # Solves "make: x86_64-conda_cos6-linux-gnu-cc: Command not found"
+  # when running "bundle install"
+  - gxx_linux-64
+  - pip:
+    - world_bank_data
+    - jupyter-book
